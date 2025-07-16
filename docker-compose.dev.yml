@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  api:
+    build: ./math_service
+    container_name: math-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./math_service:/app                       # Live code reload
+      - math-db:/app/db.sqlite  # SQLite DB persistence
+    restart: unless-stopped
+
+volumes:
+  math-db:
+
