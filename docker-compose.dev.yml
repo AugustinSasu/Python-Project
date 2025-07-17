@@ -11,6 +11,7 @@ services:
       - math-db:/app/db.sqlite  # SQLite DB persistence
     restart: unless-stopped
 
+
 volumes:
   math-db:
 

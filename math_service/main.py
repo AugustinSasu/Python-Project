@@ -4,13 +4,16 @@ from fastapi import FastAPI
 
 app = FastAPI()
 
+
 @app.get("/")
 async def root():
     return {"message": "Math service is running 🚀"}
 
+
 @app.get("/pow")
 async def power(x: float, y: float):
     return {"operation": "power", "x": x, "y": y, "result": x ** y}
+
 
 @app.get("/fib")
 async def fibonacci(n: int):
@@ -20,6 +23,7 @@ async def fibonacci(n: int):
     for _ in range(n):
         a, b = b, a + b
     return {"operation": "fibonacci", "n": n, "result": a}
+
 
 @app.get("/factorial")
 async def factorial(n: int):
