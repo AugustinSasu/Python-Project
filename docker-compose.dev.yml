@@ -2,13 +2,17 @@ version: "3.9"
 
 services:
   api:
-    build: ./math_service
+    build: 
+      context: ./math_service
     container_name: math-api
     ports:
       - "8000:8000"
     volumes:
-      - ./math_service:/app                       # Live code reload
-      - math-db:/app/db.sqlite  # SQLite DB persistence
+    #./math_service - local directory -> :/math_service - container directory
+      - ./math_service:/math_service                       # Live code reload
+      - math-db:/math_service/db/  # SQLite DB persistence; mounting the volume to the db directory in the container
+
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
     restart: unless-stopped
 
 
