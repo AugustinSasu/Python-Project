@@ -2,36 +2,41 @@
 
 from fastapi import FastAPI
 
+import json
+
 from database import engine
 from database import SessionLocal
 
 from models import Base
 from models import MathRequest
 
-#pt ca app.on_event("startup") is deprecated in FastAPI 0.100.0 folosim asynccontextmanager
+# pt ca app.on_event("startup") is deprecated
+# in FastAPI 0.100.0 folosim asynccontextmanager
 from contextlib import asynccontextmanager
 
 import os
 
-#initialize the database
+
 @asynccontextmanager
+# Initialize the database
 async def lifespan(app: FastAPI):
-    os.makedirs("./persistent-db", exist_ok=True) #create persistent-db directory inside the container if it does not exist
+    # create persistent-db directory inside the container if it does not exist
+    os.makedirs("./persistent-db", exist_ok=True)
 
     # STARTUP CODE HERE
-    async with engine.begin() as conn: # Create a connection to the database
-        await conn.run_sync(Base.metadata.create_all) # Create all tables in the database from the Base class which math_service.models.py defines
+    async with engine.begin() as conn:  # Create a connection to the database
+        # Create all tables in the database from
+        # the Base class which math_service.models.py defines
+        await conn.run_sync(Base.metadata.create_all)
     yield
-    
+
     # SHUTDOWN CODE HERE
     await engine.dispose()
 
 
-import json
-
-
-# Initialize FastAPI app with lifespan: FastAPI expects a function here to handle startup
-app = FastAPI(lifespan = lifespan)
+# Initialize FastAPI app with lifespan:
+# FastAPI expects a function here to handle startup
+app = FastAPI(lifespan=lifespan)
 
 
 async def log_request(operation: str, inputs: dict, result: float):

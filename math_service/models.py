@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Float, DateTime
 from sqlalchemy.sql import func
 from database import Base
 
+
 class MathRequest(Base):
     __tablename__ = "math_requests"
 
