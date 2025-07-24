@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = "sqlite+aiosqlite:///./db/db.sqlite" # db directory in the container configured in docker-compose.dev.yml
+DATABASE_URL = "sqlite+aiosqlite:///persistent-db/db.sqlite" #persistent-db directory in the math_service directory
 
 engine = create_async_engine(DATABASE_URL, echo=True)
 SessionLocal = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)

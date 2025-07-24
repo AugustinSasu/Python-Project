@@ -11,14 +11,18 @@ from models import MathRequest
 #pt ca app.on_event("startup") is deprecated in FastAPI 0.100.0 folosim asynccontextmanager
 from contextlib import asynccontextmanager
 
+import os
 
 #initialize the database
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    os.makedirs("./persistent-db", exist_ok=True) #create persistent-db directory inside the container if it does not exist
+
     # STARTUP CODE HERE
     async with engine.begin() as conn: # Create a connection to the database
         await conn.run_sync(Base.metadata.create_all) # Create all tables in the database from the Base class which math_service.models.py defines
     yield
+    
     # SHUTDOWN CODE HERE
     await engine.dispose()
 

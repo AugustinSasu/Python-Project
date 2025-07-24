@@ -8,9 +8,9 @@ services:
     ports:
       - "8000:8000"
     volumes:
-    #./math_service - local directory -> :/math_service - container directory
-      - ./math_service:/math_service                       # Live code reload
-      - math-db:/math_service/db/  # SQLite DB persistence; mounting the volume to the db directory in the container
+      #./math_service - local directory -> :/math-service - container directory which is set in Dockerfile in WORKDIR
+      - ./math_service:/math-service                   # math-service from container math_api is the app folder: app’s code lives here;    
+      - math-db:/math-service/persistent-db            # persistent-db directory in the math-service directory
 
     command: uvicorn main:app --host 0.0.0.0 --port 8000
     restart: unless-stopped
