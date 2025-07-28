@@ -54,7 +54,6 @@ async def log_request(operation: str, inputs: dict, result: float):
 async def root():
     return {"message": "Math service is running 🚀"}
 
-
 @app.get("/pow")
 async def power(x: float, y: float):
     result = x ** y
