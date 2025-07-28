@@ -1,12 +1,16 @@
 import aio_pika
 import json
+
+from fastapi import params
+from sqlalchemy import func
 from services.math_srv import MathService
 from models.MathRequest import MathRequestCreate
 
 
 class MathWorker:
-    def __init__(self, srv: MathService):
+    def __init__(self, srv: MathService, channel):
         self.service = srv
+        self.channel = channel
         self.operations = {
             "power": self.service.power,
             "fibonacci": self.service.fibonacci,
@@ -23,16 +27,17 @@ class MathWorker:
                 func = self.operations.get(req.operation)
 
                 if func:
-                    result = await func(**request_model.input_data)
+                    params = json.loads(req.input_data)  # Convert string → dict
+                    result = await func(**params)
                     response = {
                         "status": "success",
-                        "operation": operation,
+                        "operation": req.operation,
                         "result": result
                     }
                 else:
                     response = {
                         "status": "error",
-                        "message": f"Unknown operation: {operation}"
+                        "message": f"Unknown operation: {req.operation}"
                     }
 
                 # ➕ Handle RPC reply
@@ -41,7 +46,7 @@ class MathWorker:
                         body=json.dumps(response).encode(),
                         correlation_id=message.correlation_id
                     )
-                    await message.channel.default_exchange.publish(
+                    await self.channel.default_exchange.publish(
                         response_msg,
                         routing_key=message.reply_to
                     )
@@ -63,7 +68,7 @@ class MathWorker:
                         body=json.dumps(error_response).encode(),
                         correlation_id=message.correlation_id
                     )
-                    await message.channel.default_exchange.publish(
+                    await self.channel.default_exchange.publish(
                         response_msg,
                         routing_key=message.reply_to
                     )

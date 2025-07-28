@@ -15,7 +15,7 @@ async def rpc_call(operation: str, params: dict, timeout: float = 5.0):
     correlation_id = str(uuid.uuid4())
 
     # Open a new channel and reply queue
-    channel = await publisher.channel()
+    channel = publisher.channel
     callback_queue = await channel.declare_queue(exclusive=True)
 
     future = asyncio.get_event_loop().create_future()

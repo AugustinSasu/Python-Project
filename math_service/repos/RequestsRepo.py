@@ -6,7 +6,6 @@ class RequestsRepo:
     def __init__(self, db):
         self.db = db
 
-    @classmethod
     async def get_request(self, request_id: int) -> Optional[MathRequestRead]:
         query = "SELECT * FROM math_requests WHERE id = :id"
         row = await self.db.fetch_one(query, values={"id": request_id})
@@ -14,7 +13,6 @@ class RequestsRepo:
             return MathRequestRead(**row)
         return None
 
-    @classmethod
     async def create_request(self, request_data: MathRequestCreate) -> int:
         query = """
             INSERT INTO math_requests (operation, input_data, result)
@@ -24,7 +22,6 @@ class RequestsRepo:
         values = request_data.dict()
         return await self.db.execute(query=query, values=values)
 
-    @classmethod
     async def update_request(
             self, request_id: int,
             request_data: MathRequestCreate) -> None:
@@ -40,7 +37,6 @@ class RequestsRepo:
         values["id"] = request_id
         await self.db.execute(query=query, values=values)
 
-    @classmethod
     async def delete_request(self, request_id: int) -> None:
         query = "DELETE FROM math_requests WHERE id = :id"
         await self.db.execute(query=query, values={"id": request_id})
