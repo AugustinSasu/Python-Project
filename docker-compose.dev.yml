@@ -8,14 +8,59 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      #./math_service - local directory -> :/math-service - container directory which is set in Dockerfile in WORKDIR
-      - ./math_service:/math-service                   # math-service from container math_api is the app folder: app’s code lives here;    
-      - math-db:/math-service/persistent-db            # persistent-db directory in the math-service directory
-
+      - ./math_service:/math-service
+      - math-db:/math-service/persistent-db
     command: uvicorn main:app --host 0.0.0.0 --port 8000
     restart: unless-stopped
+    depends_on:
+      - rabbitmq
 
+  worker1:
+    build: 
+      context: ./math_service
+    container_name: math-worker-1
+    volumes:
+      - ./math_service:/math-service
+      - math-db:/math-service/persistent-db
+    command: python broker/worker_main.py
+    restart: unless-stopped
+    depends_on:
+      - rabbitmq
+
+  worker2:
+    build: 
+      context: ./math_service
+    container_name: math-worker-2
+    volumes:
+      - ./math_service:/math-service
+      - math-db:/math-service/persistent-db
+    command: python broker/worker_main.py
+    restart: unless-stopped
+    depends_on:
+      - rabbitmq
+
+  worker3:
+    build: 
+      context: ./math_service
+    container_name: math-worker-3
+    volumes:
+      - ./math_service:/math-service
+      - math-db:/math-service/persistent-db
+    command: python broker/worker_main.py
+    restart: unless-stopped
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # Broker
+      - "15672:15672" # Web UI
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    restart: unless-stopped
 
 volumes:
   math-db:
-
+  rabbitmq-data:

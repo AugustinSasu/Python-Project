@@ -7,7 +7,6 @@ from datetime import datetime
 class MathRequestBase(BaseModel):
     operation: str
     input_data: str
-    result: float
 
 
 class MathRequestCreate(MathRequestBase):
@@ -17,6 +16,7 @@ class MathRequestCreate(MathRequestBase):
 class MathRequestRead(MathRequestBase):
     id: int
     timestamp: datetime
+    result: float
 
     class Config:
         orm_mode = True

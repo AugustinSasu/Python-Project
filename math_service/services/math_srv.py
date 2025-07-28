@@ -1,10 +1,10 @@
-from math_service.repos.RequestsRepo import RequestsRepo
+from repos.RequestsRepo import RequestsRepo
 
-from math_service.models.PowOp import PowOp
-from math_service.models.FiboOp import FibonacciOp
-from math_service.models.FactorialOp import FactorialOp
+from models.PowOp import PowOp
+from models.FiboOp import FibonacciOp
+from models.FactorialOp import FactorialOp
 
-from math_service.models.MathRequest import MathRequestCreate  # Adjust path as needed
+from models.MathRequest import MathRequestCreate  # Adjust path as needed
 
 
 class MathService:

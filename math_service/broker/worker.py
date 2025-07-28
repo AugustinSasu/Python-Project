@@ -1,8 +1,7 @@
-
 import aio_pika
 import json
-
-from math_service.services.math_srv import MathService
+from services.math_srv import MathService
+from models.MathRequest import MathRequestCreate
 
 
 class MathWorker:
@@ -17,32 +16,54 @@ class MathWorker:
     async def handle_message(self, message: aio_pika.IncomingMessage):
         async with message.process():
             try:
-                payload = json.loads(message.body.decode())
-                operation = payload.get("operation")
-                params = payload.get("params", {})
+                req = MathRequestCreate.model_validate_json(message.body.decode())
 
-                print(f"[TASK RECEIVED] {operation}({params})")
+                print(f"[TASK RECEIVED] {req.operation}({req.input_data})")
 
-                func = self.operations.get(operation)
+                func = self.operations.get(req.operation)
 
-                # Dispatch operation
                 if func:
-                    result = await func(**params)
-                    return {
+                    result = await func(**request_model.input_data)
+                    response = {
                         "status": "success",
                         "operation": operation,
                         "result": result
                     }
                 else:
-                    print(f"[ERROR] Unknown operation: {operation}")
-                    return {
+                    response = {
                         "status": "error",
                         "message": f"Unknown operation: {operation}"
                     }
 
+                # ➕ Handle RPC reply
+                if message.reply_to and message.correlation_id:
+                    response_msg = aio_pika.Message(
+                        body=json.dumps(response).encode(),
+                        correlation_id=message.correlation_id
+                    )
+                    await message.channel.default_exchange.publish(
+                        response_msg,
+                        routing_key=message.reply_to
+                    )
+                    print(f"[RESPONSE SENT] correlation_id={message.correlation_id}")
+                else:
+                    print("[INFO] No reply_to or correlation_id found — fire-and-forget mode")
+
             except Exception as e:
-                print(f"[ERROR] Failed to handle message: {e}")
-                return {
+                error_response = {
                     "status": "error",
-                    "message": f"Failed to handle message: {e}"
+                    "message": f"Exception: {str(e)}"
                 }
+
+                print(f"[ERROR] {str(e)}")
+
+                # Send error response if reply_to is available
+                if message.reply_to and message.correlation_id:
+                    response_msg = aio_pika.Message(
+                        body=json.dumps(error_response).encode(),
+                        correlation_id=message.correlation_id
+                    )
+                    await message.channel.default_exchange.publish(
+                        response_msg,
+                        routing_key=message.reply_to
+                    )
