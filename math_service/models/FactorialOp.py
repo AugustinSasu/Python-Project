@@ -1,6 +1,6 @@
 
 
-from math_service.models.MathOperation import MathOperation
+from models.MathOperation import MathOperation
 
 
 class FactorialOp(MathOperation):

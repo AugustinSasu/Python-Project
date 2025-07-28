@@ -1,5 +1,5 @@
 from typing import Optional
-from models import MathRequestCreate, MathRequestRead
+from models.MathRequest import MathRequestCreate, MathRequestRead
 
 
 class RequestsRepo:

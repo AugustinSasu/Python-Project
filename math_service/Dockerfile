@@ -15,6 +15,9 @@ RUN apt update && apt install -y sqlite3
 # Copy app code
 COPY . .
 
+ENV PYTHONPATH=/math-service
+
+
 # Expose FastAPI default port
 EXPOSE 8000
 
