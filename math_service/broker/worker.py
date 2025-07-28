@@ -1,10 +1,9 @@
 import aio_pika
 import json
 
-from fastapi import params
-from sqlalchemy import func
 from services.math_srv import MathService
 from models.MathRequest import MathRequestCreate
+from logging_config import logger
 
 
 class MathWorker:
@@ -20,9 +19,10 @@ class MathWorker:
     async def handle_message(self, message: aio_pika.IncomingMessage):
         async with message.process():
             try:
+                logger.debug(f"[RECEIVED MESSAGE] {message.body.decode()}")
                 req = MathRequestCreate.model_validate_json(message.body.decode())
 
-                print(f"[TASK RECEIVED] {req.operation}({req.input_data})")
+                logger.info(f"[TASK RECEIVED] {req.operation}({req.input_data})")
 
                 func = self.operations.get(req.operation)
 
@@ -50,9 +50,9 @@ class MathWorker:
                         response_msg,
                         routing_key=message.reply_to
                     )
-                    print(f"[RESPONSE SENT] correlation_id={message.correlation_id}")
+                    logger.info(f"[RESPONSE SENT] correlation_id={message.correlation_id}")
                 else:
-                    print("[INFO] No reply_to or correlation_id found — fire-and-forget mode")
+                    logger.info("[INFO] No reply_to or correlation_id found — fire-and-forget mode")
 
             except Exception as e:
                 error_response = {
@@ -60,7 +60,7 @@ class MathWorker:
                     "message": f"Exception: {str(e)}"
                 }
 
-                print(f"[ERROR] {str(e)}")
+                logger.exception("[ERROR] Unexpected exception:")
 
                 # Send error response if reply_to is available
                 if message.reply_to and message.correlation_id:

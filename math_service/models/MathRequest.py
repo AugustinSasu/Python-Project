@@ -18,5 +18,6 @@ class MathRequestRead(MathRequestBase):
     timestamp: datetime
     result: float
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }

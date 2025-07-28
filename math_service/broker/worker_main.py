@@ -4,7 +4,7 @@ from aio_pika.exceptions import AMQPConnectionError
 from broker.worker import MathWorker
 from services.math_srv import MathService
 from repos.RequestsRepo import RequestsRepo
-from database import SessionLocal  # ⬅️ from your SQLAlchemy setup
+from database import SessionLocal
 
 AMQP_URL = "amqp://guest:guest@rabbitmq/"
 QUEUE_NAME = "math_requests"
@@ -25,8 +25,6 @@ async def main():
     connection = await wait_for_rabbitmq(AMQP_URL)
     channel = await connection.channel()
     await channel.set_qos(prefetch_count=10)
-
-    
 
     # Create queue
     queue = await channel.declare_queue(QUEUE_NAME, durable=True)

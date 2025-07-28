@@ -1,6 +1,0 @@
-
-
-print("ceaulwe")
-
-
-print("ceaulwe")
