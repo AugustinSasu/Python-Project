@@ -7,9 +7,16 @@ import asyncio
 import aio_pika
 from models.MathRequest import MathRequestCreate
 from logging_utils.logging_config import logger
+import redis.asyncio as aioredis
 
 router = APIRouter()
 publisher: aio_pika.RobustConnection = None  # Will be injected
+
+cache = aioredis.Redis(host='redis', port=6379, db=0)
+
+
+def make_cache_key(operation, params):
+    return f"{operation}:{':'.join(str(v) for v in params.values())}"
 
 
 # RPC(Remote Procedure call) pattern that sends a request to RabbitMQ and waits for a response
@@ -53,8 +60,18 @@ async def rpc_call(operation: str, params: dict, timeout: float = 5.0):
 
 @router.get("/pow")
 async def power(x: float = Query(...), y: float = Query(...)):
+    cache_key = make_cache_key("power", {"x": x, "y": y})
+    cached = await cache.get(cache_key)
+    if cached:
+        logger.info(f"[CACHE HIT] {cache_key}")
+        return json.loads(cached)
+
     result = await rpc_call("power", {"x": x, "y": y})
+    await cache.set(cache_key, json.dumps(result), ex=3600)  # Cache for 1 hour
+
+    logger.info(f"[CACHE MISS] {cache_key}")
     logger.info(f"Power operation: {x} ^ {y} = {result}")
+
     return result
 
 
