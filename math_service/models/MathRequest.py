@@ -9,6 +9,7 @@ class MathRequestBase(BaseModel):
     input_data: str
 
 
+# inherit from MathRequestBase to create request and response models
 class MathRequestCreate(MathRequestBase):
     pass
 

@@ -6,11 +6,13 @@ import json
 import asyncio
 import aio_pika
 from models.MathRequest import MathRequestCreate
+from logging_utils.logging_config import logger
 
 router = APIRouter()
 publisher: aio_pika.RobustConnection = None  # Will be injected
 
 
+# RPC(Remote Procedure call) pattern that sends a request to RabbitMQ and waits for a response
 async def rpc_call(operation: str, params: dict, timeout: float = 5.0):
     correlation_id = str(uuid.uuid4())
 
@@ -52,6 +54,7 @@ async def rpc_call(operation: str, params: dict, timeout: float = 5.0):
 @router.get("/pow")
 async def power(x: float = Query(...), y: float = Query(...)):
     result = await rpc_call("power", {"x": x, "y": y})
+    logger.info(f"Power operation: {x} ^ {y} = {result}")
     return result
 
 
@@ -60,6 +63,7 @@ async def fib(n: int = Query(...)):
     if n < 0:
         raise HTTPException(status_code=400, detail="n must be >= 0")
     result = await rpc_call("fibonacci", {"n": n})
+    logger.info(f"Fibonacci operation: fib({n}) = {result}")
     return result
 
 
@@ -68,4 +72,5 @@ async def factorial(n: int = Query(...)):
     if n < 0:
         raise HTTPException(status_code=400, detail="n must be >= 0")
     result = await rpc_call("factorial", {"n": n})
+    logger.info(f"Factorial operation: {n}! = {result}")
     return result

@@ -3,7 +3,7 @@ import json
 
 from services.math_srv import MathService
 from models.MathRequest import MathRequestCreate
-from logging_config import logger
+from logging_utils.logging_config import logger
 
 
 class MathWorker:
@@ -16,14 +16,18 @@ class MathWorker:
             "factorial": self.service.factorial,
         }
 
+    # handles incoming messages from RabbitMQ
     async def handle_message(self, message: aio_pika.IncomingMessage):
         async with message.process():
             try:
                 logger.debug(f"[RECEIVED MESSAGE] {message.body.decode()}")
+
+                # Extract request data
                 req = MathRequestCreate.model_validate_json(message.body.decode())
 
                 logger.info(f"[TASK RECEIVED] {req.operation}({req.input_data})")
 
+                # Get the appropriate operation from req
                 func = self.operations.get(req.operation)
 
                 if func:
@@ -40,7 +44,7 @@ class MathWorker:
                         "message": f"Unknown operation: {req.operation}"
                     }
 
-                # ➕ Handle RPC reply
+                # Handle RPC reply back to RabbitMQ
                 if message.reply_to and message.correlation_id:
                     response_msg = aio_pika.Message(
                         body=json.dumps(response).encode(),

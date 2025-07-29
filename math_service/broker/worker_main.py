@@ -10,14 +10,15 @@ AMQP_URL = "amqp://guest:guest@rabbitmq/"
 QUEUE_NAME = "math_requests"
 
 
+# wait for RabbitMQ to be ready
 async def wait_for_rabbitmq(amqp_url: str, retries: int = 10, delay: float = 2.0):
     for attempt in range(retries):
         try:
             return await aio_pika.connect_robust(amqp_url)
         except AMQPConnectionError:
-            print(f"[WARN] RabbitMQ not ready (attempt {attempt + 1}/{retries}), retrying in {delay}s...")
+            print(f"[WARN] RabbitMQ not ready for worker (attempt {attempt + 1}/{retries}), retrying in {delay}s...")
             await asyncio.sleep(delay)
-    raise RuntimeError("Failed to connect to RabbitMQ after multiple attempts.")
+    raise RuntimeError("Failed to connect worker to RabbitMQ after multiple attempts.")
 
 
 async def main():
@@ -31,11 +32,12 @@ async def main():
 
     # Create DB session
     async with SessionLocal() as session:
-        repo = RequestsRepo(session)          # ⬅️ Use SQLAlchemy AsyncSession
+        repo = RequestsRepo(session)          # Use SQLAlchemy AsyncSession
         service = MathService(repo)
         worker = MathWorker(service, channel)
 
         # Bind message handler
+        print("About to register consumer...")
         await queue.consume(worker.handle_message)
 
         print(f"[WORKER READY] Listening on queue: {QUEUE_NAME}")

@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from database import engine  # you may or may not still need this depending on your usage
 from database import Base
 from routes import math_routes
+from logging_utils.logging_config import init_logging
 
 
 publisher = Publisher()
@@ -25,6 +26,9 @@ async def lifespan(app: FastAPI):
     # Inject broker into routes
     math_routes.publisher = publisher
 
+    # Initialize logging
+    init_logging(rabbit_host="rabbitmq", rabbit_queue="logs")
+
     yield  # app runs here
 
     # Shutdown cleanup
@@ -32,6 +36,6 @@ async def lifespan(app: FastAPI):
     if publisher.connection:
         await publisher.connection.close()
 
-app = FastAPI(lifespan=lifespan)
 
+app = FastAPI(lifespan=lifespan)
 app.include_router(math_routes.router)

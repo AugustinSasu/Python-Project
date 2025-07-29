@@ -61,6 +61,15 @@ services:
       - rabbitmq-data:/var/lib/rabbitmq
     restart: unless-stopped
 
+  log_consumer:
+    build:
+      context: ./math_service
+    container_name: log_consumer
+    command: ["python", "logging_utils/log_consumer.py"]
+    depends_on:
+      - rabbitmq
+
+
 volumes:
   math-db:
   rabbitmq-data:
